@@ -209,13 +209,14 @@ LXQtPanel[position="Top"] #TaskBar QToolButton[urgent="true"] {
  * Tooltip
  */
 QToolTip {
-    border: 1px solid rgba(10, 10, 10, 90%);
-    border-top-color: rgba(50, 50, 50, 70%);
-    border-left-color: rgba(40, 40, 40, 70%);
-    background: rgba(20, 20, 20, 90%);
-    padding: 2px;
+    /* macOS menu-bar icons show no hover tooltips: hidden (opacity 0).
+       To show them again (light style below) delete the opacity line. */
+    opacity: 0;
+    border: 1px solid rgba(0, 0, 0, 18%);
+    background: #f6f6f6;
+    padding: 3px 6px;
     margin: 0px;
-    color: #ffffff
+    color: #1d1d1f;
 }
 
 /*

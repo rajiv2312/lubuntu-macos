@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Resize zones
+Comment=macOS-style invisible resize area around the focused window
+Exec=@HOME@/.local/share/macos-theme/resize-zones
+OnlyShowIn=LXQt;
+NoDisplay=true
+Terminal=false

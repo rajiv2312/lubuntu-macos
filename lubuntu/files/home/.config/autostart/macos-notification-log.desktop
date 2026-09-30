@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Notification list recorder
+Comment=Records notifications for the macOS-style notification list (bell icon)
+Exec=python3 @HOME@/.local/share/macos-theme/notification-log.py
+OnlyShowIn=LXQt;
+NoDisplay=true
+X-LXQt-Need-Tray=false

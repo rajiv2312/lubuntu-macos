@@ -1,0 +1,3 @@
+#!/bin/sh
+# Open (or close, if open) the macOS-style Wi-Fi / Bluetooth menu without blocking the top bar
+setsid -f python3 "$HOME/.local/share/macos-theme/status-menu.py" "$1" >/dev/null 2>&1

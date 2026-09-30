@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Focused-window hint
+Comment=Lets GTK header bars show macOS-style unfocused windows under Openbox
+Exec=@HOME@/.local/share/macos-theme/focus-hint
+OnlyShowIn=LXQt;
+NoDisplay=true
+Terminal=false

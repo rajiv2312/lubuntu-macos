@@ -1,9 +1,14 @@
-# macOS-style: Flurry screensaver, dark unlock dialog (locking left off, as before)
+# macOS-style screensavers: Ken Burns slideshow over the colour macOS wallpapers (Flurry as alternative)
 mode:		one
 selected:	0
 timeout:	0:10:00
 lock:		False
 dialogTheme:	Dark Gray
+imageDirectory:	@HOME@/.local/share/macos-theme/screensaver
+chooseRandomImages:	True
+grabDesktopImages:	False
+grabVideoFrames:	False
 programs:								      \
+  GL: 				glslideshow --root --duration 20 --pan 20 --fade 3 --zoom 75 \n\
   GL: 				flurry --root				    \n\
 

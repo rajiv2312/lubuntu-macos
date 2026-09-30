@@ -23,7 +23,7 @@ background-color='rgb(242,242,242)'
 use-foreground-color=true
 foreground-color='rgb(29,29,31)'
 use-font=true
-font='Inter 10'
+font='Inter 16'
 autohide=false
 
 [apple]

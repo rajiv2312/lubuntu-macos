@@ -1,0 +1,12 @@
+#!/bin/sh
+# Undo the macOS-style Wi-Fi / Bluetooth / Sound menus: put back the original
+# volume widget and the nm-tray and Blueman icons. Other top-bar settings are kept.
+M="$HOME/.local/share/macos-theme"; P="$HOME/.config/lxqt/panel.conf"
+pkill -f "$M/status-menu.py" 2>/dev/null
+pkill -f "$M/notification-log.py" 2>/dev/null
+rm -f "$HOME/.config/autostart/macos-notification-log.desktop" "$M/notification-log.py" "$M/notifications.json"
+pkill -x lxqt-panel; sleep 2
+python3 "$M/undo-status-menus.py" "$P"
+setsid -f lxqt-panel >/dev/null 2>&1
+rm -f "$M/status-menu.py" "$M/status-menu" "$M/status-icon" "$M/undo-status-menus.py"
+echo "Wi-Fi/Bluetooth/Sound menus removed; the original icons and volume control are back."

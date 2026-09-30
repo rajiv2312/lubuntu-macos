@@ -1,0 +1,279 @@
+#!/usr/bin/env python3
+# macOS-style invisible resize zones.
+# Openbox only resizes from its 1px border. macOS lets you grab the front
+# window a few pixels outside its edges, so this keeps invisible input-only
+# strips around the focused window: they show the resize cursors and, when
+# pressed, hand the resize to Openbox with _NET_WM_MOVERESIZE.
+import ctypes
+
+ZONE = 6      # grab width outside the window edge, in px
+CORNER = 14   # how far each corner zone runs along the edges, in px
+
+x11 = ctypes.CDLL("libX11.so.6")
+xcursor = ctypes.CDLL("libXcursor.so.1")
+x11.XOpenDisplay.restype = ctypes.c_void_p
+x11.XInternAtom.restype = ctypes.c_ulong
+x11.XDefaultRootWindow.restype = ctypes.c_ulong
+x11.XCreateWindow.restype = ctypes.c_ulong
+xcursor.XcursorLibraryLoadCursor.restype = ctypes.c_ulong
+xcursor.XcursorLibraryLoadCursor.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+
+d = ctypes.c_void_p(x11.XOpenDisplay(None))
+root = x11.XDefaultRootWindow(d)
+
+# Ignore X errors (windows can vanish between our requests).
+ERROR_HANDLER = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)(lambda dpy, ev: 0)
+x11.XSetErrorHandler(ERROR_HANDLER)
+
+
+def atom(name):
+    return x11.XInternAtom(d, name.encode(), 0)
+
+
+A_ACTIVE = atom("_NET_ACTIVE_WINDOW")
+A_STATE = atom("_NET_WM_STATE")
+A_MAXV = atom("_NET_WM_STATE_MAXIMIZED_VERT")
+A_MAXH = atom("_NET_WM_STATE_MAXIMIZED_HORZ")
+A_FULL = atom("_NET_WM_STATE_FULLSCREEN")
+A_HIDDEN = atom("_NET_WM_STATE_HIDDEN")
+A_ALLOWED = atom("_NET_WM_ALLOWED_ACTIONS")
+A_RESIZE = atom("_NET_WM_ACTION_RESIZE")
+A_WORKAREA = atom("_NET_WORKAREA")
+A_STACKING = atom("_NET_CLIENT_LIST_STACKING")
+A_MOVERESIZE = atom("_NET_WM_MOVERESIZE")
+XA_ATOM, XA_CARDINAL, XA_WINDOW = 4, 6, 33
+
+BUTTON_PRESS, UNMAP_NOTIFY, DESTROY_NOTIFY, CONFIGURE_NOTIFY = 4, 18, 17, 22
+PROPERTY_NOTIFY, CLIENT_MESSAGE = 28, 33
+BUTTON_PRESS_MASK = 1 << 2
+STRUCTURE_NOTIFY_MASK = 1 << 17
+SUBSTRUCTURE_NOTIFY_MASK = 1 << 19
+SUBSTRUCTURE_REDIRECT_MASK = 1 << 20
+PROPERTY_CHANGE_MASK = 1 << 22
+INPUT_ONLY = 2
+CW_OVERRIDE_REDIRECT, CW_EVENT_MASK, CW_CURSOR = 1 << 9, 1 << 11, 1 << 14
+
+# _NET_WM_MOVERESIZE directions
+TOPLEFT, TOP, TOPRIGHT, RIGHT, BOTTOMRIGHT, BOTTOM, BOTTOMLEFT, LEFT = range(8)
+
+
+class XSetWindowAttributes(ctypes.Structure):
+    _fields_ = [("background_pixmap", ctypes.c_ulong), ("background_pixel", ctypes.c_ulong),
+                ("border_pixmap", ctypes.c_ulong), ("border_pixel", ctypes.c_ulong),
+                ("bit_gravity", ctypes.c_int), ("win_gravity", ctypes.c_int),
+                ("backing_store", ctypes.c_int), ("backing_planes", ctypes.c_ulong),
+                ("backing_pixel", ctypes.c_ulong), ("save_under", ctypes.c_int),
+                ("event_mask", ctypes.c_long), ("do_not_propagate_mask", ctypes.c_long),
+                ("override_redirect", ctypes.c_int), ("colormap", ctypes.c_ulong),
+                ("cursor", ctypes.c_ulong)]
+
+
+class XAnyEvent(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_int), ("serial", ctypes.c_ulong),
+                ("send_event", ctypes.c_int), ("display", ctypes.c_void_p),
+                ("window", ctypes.c_ulong)]
+
+
+class XButtonEvent(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_int), ("serial", ctypes.c_ulong),
+                ("send_event", ctypes.c_int), ("display", ctypes.c_void_p),
+                ("window", ctypes.c_ulong), ("root", ctypes.c_ulong),
+                ("subwindow", ctypes.c_ulong), ("time", ctypes.c_ulong),
+                ("x", ctypes.c_int), ("y", ctypes.c_int),
+                ("x_root", ctypes.c_int), ("y_root", ctypes.c_int),
+                ("state", ctypes.c_uint), ("button", ctypes.c_uint),
+                ("same_screen", ctypes.c_int)]
+
+
+class XPropertyEvent(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_int), ("serial", ctypes.c_ulong),
+                ("send_event", ctypes.c_int), ("display", ctypes.c_void_p),
+                ("window", ctypes.c_ulong), ("atom", ctypes.c_ulong),
+                ("time", ctypes.c_ulong), ("state", ctypes.c_int)]
+
+
+class XClientMessageEvent(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_int), ("serial", ctypes.c_ulong),
+                ("send_event", ctypes.c_int), ("display", ctypes.c_void_p),
+                ("window", ctypes.c_ulong), ("message_type", ctypes.c_ulong),
+                ("format", ctypes.c_int), ("data", ctypes.c_long * 5)]
+
+
+class XEvent(ctypes.Union):
+    _fields_ = [("type", ctypes.c_int), ("xany", XAnyEvent), ("xbutton", XButtonEvent),
+                ("xproperty", XPropertyEvent), ("xclient", XClientMessageEvent),
+                ("pad", ctypes.c_long * 24)]
+
+
+def get_prop(win, prop, typ, n=64):
+    rtyp, fmt = ctypes.c_ulong(), ctypes.c_int()
+    count, after = ctypes.c_ulong(), ctypes.c_ulong()
+    data = ctypes.POINTER(ctypes.c_ulong)()
+    if x11.XGetWindowProperty(d, ctypes.c_ulong(win), ctypes.c_ulong(prop), 0, n, 0,
+                              ctypes.c_ulong(typ), ctypes.byref(rtyp), ctypes.byref(fmt),
+                              ctypes.byref(count), ctypes.byref(after), ctypes.byref(data)) != 0 or not data:
+        return []
+    vals = [data[i] for i in range(count.value)]
+    x11.XFree(data)
+    return vals
+
+
+def frame_of(win):
+    """Top-level ancestor (Openbox's frame) of a client window."""
+    r, parent = ctypes.c_ulong(), ctypes.c_ulong()
+    kids, nkids = ctypes.POINTER(ctypes.c_ulong)(), ctypes.c_uint()
+    while True:
+        if not x11.XQueryTree(d, ctypes.c_ulong(win), ctypes.byref(r), ctypes.byref(parent),
+                              ctypes.byref(kids), ctypes.byref(nkids)):
+            return None
+        if kids:
+            x11.XFree(kids)
+        if parent.value in (0, root):
+            return win
+        win = parent.value
+
+
+def geometry(win):
+    r = ctypes.c_ulong()
+    x, y = ctypes.c_int(), ctypes.c_int()
+    w, h, b, dep = ctypes.c_uint(), ctypes.c_uint(), ctypes.c_uint(), ctypes.c_uint()
+    if not x11.XGetGeometry(d, ctypes.c_ulong(win), ctypes.byref(r), ctypes.byref(x), ctypes.byref(y),
+                            ctypes.byref(w), ctypes.byref(h), ctypes.byref(b), ctypes.byref(dep)):
+        return None
+    return x.value, y.value, w.value + 2 * b.value, h.value + 2 * b.value
+
+
+def resizable(client):
+    state = get_prop(client, A_STATE, XA_ATOM)
+    if A_FULL in state or A_HIDDEN in state or (A_MAXV in state and A_MAXH in state):
+        return False
+    return A_RESIZE in get_prop(client, A_ALLOWED, XA_ATOM)
+
+
+# (cursor name, moveresize direction) for each invisible zone
+ZONES = [("top_side", TOP), ("bottom_side", BOTTOM), ("left_side", LEFT), ("right_side", RIGHT),
+         ("top_left_corner", TOPLEFT), ("top_left_corner", TOPLEFT),
+         ("top_right_corner", TOPRIGHT), ("top_right_corner", TOPRIGHT),
+         ("bottom_left_corner", BOTTOMLEFT), ("bottom_left_corner", BOTTOMLEFT),
+         ("bottom_right_corner", BOTTOMRIGHT), ("bottom_right_corner", BOTTOMRIGHT)]
+
+zone_wins = []
+direction = {}
+for name, dirn in ZONES:
+    attrs = XSetWindowAttributes()
+    attrs.override_redirect = 1
+    attrs.event_mask = BUTTON_PRESS_MASK
+    attrs.cursor = xcursor.XcursorLibraryLoadCursor(d, name.encode())
+    w = x11.XCreateWindow(d, ctypes.c_ulong(root), 0, 0, 1, 1, 0, 0, INPUT_ONLY, None,
+                          ctypes.c_ulong(CW_OVERRIDE_REDIRECT | CW_EVENT_MASK | CW_CURSOR),
+                          ctypes.byref(attrs))
+    zone_wins.append(w)
+    direction[w] = dirn
+
+
+def rects(fx, fy, fw, fh):
+    """Zone rectangles in ZONES order: edges, then two pieces per corner."""
+    z, c = ZONE, CORNER
+    return [
+        (fx + c, fy - z, fw - 2 * c, z),            # top
+        (fx + c, fy + fh, fw - 2 * c, z),           # bottom
+        (fx - z, fy + c, z, fh - 2 * c),            # left
+        (fx + fw, fy + c, z, fh - 2 * c),           # right
+        (fx - z, fy - z, c + z, z), (fx - z, fy, z, c),                   # top-left
+        (fx + fw - c, fy - z, c + z, z), (fx + fw, fy, z, c),             # top-right
+        (fx - z, fy + fh, c + z, z), (fx - z, fy + fh - c, z, c),         # bottom-left
+        (fx + fw - c, fy + fh, c + z, z), (fx + fw, fy + fh - c, z, c),   # bottom-right
+    ]
+
+
+def clip(r, area):
+    x, y, w, h = r
+    ax, ay, aw, ah = area
+    x2, y2 = min(x + w, ax + aw), min(y + h, ay + ah)
+    x, y = max(x, ax), max(y, ay)
+    return (x, y, x2 - x, y2 - y) if x2 > x and y2 > y else None
+
+
+state = {"client": 0, "frame": 0, "shown": False}
+
+
+def hide():
+    if state["shown"]:
+        for w in zone_wins:
+            x11.XUnmapWindow(d, ctypes.c_ulong(w))
+        state["shown"] = False
+
+
+def place():
+    client, frame = state["client"], state["frame"]
+    g = geometry(frame) if frame else None
+    if not client or not g or not resizable(client):
+        hide()
+        return
+    wa = get_prop(root, A_WORKAREA, XA_CARDINAL, 4)
+    area = tuple(wa[:4]) if len(wa) >= 4 else (0, 0, 1 << 15, 1 << 15)
+    for w, r in zip(zone_wins, rects(*g)):
+        r = clip(r, area)
+        if r:
+            x11.XMoveResizeWindow(d, ctypes.c_ulong(w), r[0], r[1], r[2], r[3])
+            x11.XMapRaised(d, ctypes.c_ulong(w))
+        else:
+            x11.XUnmapWindow(d, ctypes.c_ulong(w))
+    state["shown"] = True
+
+
+def follow_active():
+    active = get_prop(root, A_ACTIVE, XA_WINDOW, 1)
+    client = active[0] if active else 0
+    if client != state["client"]:
+        state["client"] = client
+        state["frame"] = frame_of(client) if client else 0
+        if client:
+            x11.XSelectInput(d, ctypes.c_ulong(client), PROPERTY_CHANGE_MASK | STRUCTURE_NOTIFY_MASK)
+        if state["frame"] and state["frame"] != client:
+            x11.XSelectInput(d, ctypes.c_ulong(state["frame"]), STRUCTURE_NOTIFY_MASK)
+    place()
+
+
+def start_resize(ev):
+    client = state["client"]
+    if not client or ev.button != 1:
+        return
+    # Release our implicit grab so Openbox can take the pointer.
+    x11.XUngrabPointer(d, ctypes.c_ulong(0))
+    e = XEvent()
+    c = e.xclient
+    c.type = CLIENT_MESSAGE
+    c.send_event = 1
+    c.window = client
+    c.message_type = A_MOVERESIZE
+    c.format = 32
+    for i, v in enumerate((ev.x_root, ev.y_root, direction[ev.window], 1, 1)):
+        c.data[i] = v
+    x11.XSendEvent(d, ctypes.c_ulong(root), 0,
+                   SUBSTRUCTURE_REDIRECT_MASK | SUBSTRUCTURE_NOTIFY_MASK, ctypes.byref(e))
+    x11.XFlush(d)
+
+
+x11.XSelectInput(d, ctypes.c_ulong(root), PROPERTY_CHANGE_MASK)
+follow_active()
+x11.XFlush(d)
+
+ev = XEvent()
+while True:
+    x11.XNextEvent(d, ctypes.byref(ev))
+    t = ev.type
+    if t == BUTTON_PRESS and ev.xbutton.window in direction:
+        start_resize(ev.xbutton)
+    elif t == PROPERTY_NOTIFY:
+        a = ev.xproperty.atom
+        if ev.xproperty.window == root and a == A_ACTIVE:
+            follow_active()
+        elif a in (A_STATE, A_ALLOWED) or (ev.xproperty.window == root and a in (A_WORKAREA, A_STACKING)):
+            place()
+    elif t == CONFIGURE_NOTIFY and ev.xany.window in (state["frame"], state["client"]):
+        place()
+    elif t in (UNMAP_NOTIFY, DESTROY_NOTIFY) and ev.xany.window in (state["frame"], state["client"]):
+        hide()
+        state["client"] = state["frame"] = 0
+    x11.XFlush(d)

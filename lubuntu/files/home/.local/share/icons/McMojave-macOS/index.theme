@@ -1,0 +1,4 @@
+[Icon Theme]
+Name=McMojave macOS
+Comment=McMojave with macOS double-arrow resize cursors
+Inherits=McMojave-cursors

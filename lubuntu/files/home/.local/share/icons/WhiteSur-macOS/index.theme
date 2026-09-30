@@ -1,0 +1,20 @@
+[Icon Theme]
+Name=WhiteSur-macOS
+Comment=WhiteSur with colour folder icons at 24px (Finder list view), like macOS
+Inherits=WhiteSur,hicolor
+Directories=places/16,places/22,places/24
+
+[places/24]
+Size=24
+Context=Places
+Type=Fixed
+
+[places/16]
+Size=16
+Context=Places
+Type=Fixed
+
+[places/22]
+Size=22
+Context=Places
+Type=Fixed

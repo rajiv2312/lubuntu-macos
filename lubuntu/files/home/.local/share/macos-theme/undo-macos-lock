@@ -1,0 +1,23 @@
+#!/bin/sh
+# Undo the macOS login-screen lock: every lock goes back to xscreensaver, and the
+# Ctrl+Alt+F-key block is removed from SDDM's Xsetup (asks for your password once).
+M="$HOME/.local/share/macos-theme"
+# 1. LXQt lock command (closing the lid, LXQt's lock) -> default xdg-screensaver
+python3 - "$HOME/.config/lxqt/lxqt.conf" <<'PY'
+import re, sys
+p = sys.argv[1]; s = open(p).read()
+s = re.sub(r"\n?\[Screensaver\]\nlock_command=[^\n]*macos-lock\n?", "\n", s)
+open(p, "w").write(s)
+PY
+# 2. Apple menu -> xdg-screensaver lock (then restart the menu bar)
+sed -i "s|<attribute name=\"target\">$M/macos-lock</attribute>|<attribute name=\"target\">xdg-screensaver lock</attribute>|" "$M/apple-menu.ui"
+V=$(ps -eo pid,args | awk '$2=="vala-panel"{print $1}'); [ -n "$V" ] && kill $V; sleep 2
+setsid -f env XDG_CONFIG_HOME="$M/vala-panel-config" vala-panel -p macos-menu >/dev/null 2>&1
+# 3. Ctrl+Alt+L -> xdg-screensaver lock (shortcut service stopped while editing)
+G=$(ps -eo pid,args | awk '$2 ~ /lxqt-globalkeysd$/ {print $1}'); [ -n "$G" ] && kill $G; sleep 2
+sed -i "s|^Exec=$M/macos-lock\$|Exec=xdg-screensaver, lock|" "$HOME/.config/lxqt/globalkeyshortcuts.conf"
+setsid -f lxqt-globalkeysd >/dev/null 2>&1
+# 4. remove the 3 protection lines from SDDM's Xsetup
+pkexec sed -i '/^# macos-lock: no Ctrl+Alt+F1-F12/,/^setxkbmap -option srvrkeys:none/d' /usr/share/sddm/scripts/Xsetup
+rm -f "$M/macos-lock"
+echo "macOS lock removed: locking uses xscreensaver again."

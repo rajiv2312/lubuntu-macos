@@ -1,6 +1,6 @@
 /* only loaded by the vala-panel global-menu bar */
 window, menubar, box, button, label { color: #1d1d1f; }
 menubar { background: transparent; box-shadow: none; border: none; padding: 0; }
-menubar > menuitem { padding: 0 9px; color: #1d1d1f; min-height: 0; }
+menubar > menuitem { padding: 0 11px; color: #1d1d1f; min-height: 0; }
 menubar > menuitem:hover { background: rgba(0, 0, 0, 0.08); border-radius: 5px; box-shadow: none; }
 menubar > menuitem > label { color: #1d1d1f; }

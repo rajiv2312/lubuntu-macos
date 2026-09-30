@@ -65,7 +65,7 @@
   <animateIconify>yes</animateIconify>
   <font place="ActiveWindow">
     <name>Inter</name>
-    <size>11</size>
+    <size>12</size>
     <!-- font size in points -->
     <weight>bold</weight>
     <!-- 'bold' or 'normal' -->
@@ -74,7 +74,7 @@
   </font>
   <font place="InactiveWindow">
     <name>Inter</name>
-    <size>11</size>
+    <size>12</size>
     <!-- font size in points -->
     <weight>bold</weight>
     <!-- 'bold' or 'normal' -->

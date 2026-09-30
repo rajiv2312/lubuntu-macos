@@ -1,0 +1,3 @@
+#!/bin/sh
+# Open (or, if already open, close) the macOS-style Notification Center without blocking the caller.
+setsid -f python3 "$HOME/.local/share/macos-theme/notification-center.py" >/dev/null 2>&1

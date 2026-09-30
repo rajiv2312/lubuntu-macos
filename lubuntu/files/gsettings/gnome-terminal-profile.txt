@@ -22,7 +22,7 @@ org.gnome.Terminal.Legacy.Profile enable-shaping true
 org.gnome.Terminal.Legacy.Profile enable-sixel false
 org.gnome.Terminal.Legacy.Profile encoding 'UTF-8'
 org.gnome.Terminal.Legacy.Profile exit-action 'close'
-org.gnome.Terminal.Legacy.Profile font 'DejaVu Sans Mono 13'
+org.gnome.Terminal.Legacy.Profile font 'DejaVu Sans Mono 12'
 org.gnome.Terminal.Legacy.Profile foreground-color '#171421'
 org.gnome.Terminal.Legacy.Profile highlight-background-color '#000000'
 org.gnome.Terminal.Legacy.Profile highlight-colors-set false

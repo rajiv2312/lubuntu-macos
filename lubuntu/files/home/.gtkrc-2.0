@@ -1,7 +1,7 @@
 gtk-theme-name = "WhiteSur-Light"
 gtk-icon-theme-name = "WhiteSur"
-gtk-font-name = "Inter 10"
-gtk-cursor-theme-name = "McMojave-cursors"
+gtk-font-name = "Inter 12"
+gtk-cursor-theme-name = "McMojave-macOS"
 gtk-cursor-theme-size = 24
 gtk-button-images = 0
 gtk-menu-images = 1

@@ -49,7 +49,7 @@
       <item>
         <attribute name="label">Lock Screen</attribute>
         <attribute name="action">app.launch-command</attribute>
-        <attribute name="target">xdg-screensaver lock</attribute>
+        <attribute name="target">@HOME@/.local/share/macos-theme/macos-lock</attribute>
       </item>
       <item>
         <attribute name="label">Log Out @REALNAME@…</attribute>

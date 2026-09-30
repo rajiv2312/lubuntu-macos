@@ -1,0 +1,3 @@
+#!/bin/sh
+# Top-bar clock text (same format as before: "Mon 28 Sep  11:28 PM")
+LC_TIME=en_US.UTF-8 date '+%a %-d %b  %-I:%M %p'

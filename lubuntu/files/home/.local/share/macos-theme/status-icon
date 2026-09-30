@@ -1,0 +1,46 @@
+#!/bin/sh
+# Top-bar icon name for the macOS-style Wi-Fi / Bluetooth menus (Papirus-Light panel icons)
+case "$1" in
+wifi)
+    if [ "$(nmcli -t -f WIFI radio 2>/dev/null)" != "enabled" ]; then echo network-wireless-offline; exit; fi
+    sig=$(nmcli -t -f IN-USE,SIGNAL device wifi list --rescan no 2>/dev/null | awk -F: '$1=="*"{print $2; exit}')
+    if [ -z "$sig" ]; then echo network-wireless-signal-none
+    elif [ "$sig" -ge 75 ]; then echo network-wireless-signal-excellent
+    elif [ "$sig" -ge 50 ]; then echo network-wireless-signal-good
+    elif [ "$sig" -ge 25 ]; then echo network-wireless-signal-ok
+    else echo network-wireless-signal-weak; fi ;;
+bluetooth)
+    if bluetoothctl show 2>/dev/null | grep -q 'Powered: yes'; then echo bluetooth-active; else echo bluetooth-disabled; fi ;;
+esac
+case "$1" in
+sound)
+    out=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)
+    case "$out" in *MUTED*) echo audio-volume-muted; exit;; esac
+    v=$(echo "$out" | awk '{printf "%d", $2*100}')
+    if [ -z "$v" ] || [ "$v" -eq 0 ]; then echo audio-volume-muted
+    elif [ "$v" -lt 34 ]; then echo audio-volume-low
+    elif [ "$v" -lt 67 ]; then echo audio-volume-medium
+    else echo audio-volume-high; fi ;;
+esac
+case "$1" in
+battery)
+    dev=$(upower -e 2>/dev/null | grep -m1 battery_)
+    pct=$(upower -i "$dev" 2>/dev/null | awk '/percentage/{gsub("%","",$2); printf "%d", $2}')
+    ac=$(upower -e 2>/dev/null | grep line_power | while read l; do upower -i "$l"; done | grep -c 'online: *yes')
+    [ -z "$pct" ] && { echo battery-missing; exit; }
+    step=$(( (pct + 5) / 10 * 10 )); [ $step -gt 100 ] && step=100
+    printf 'battery-%03d%s\n' "$step" "$( [ "$ac" -gt 0 ] && echo -charging )" ;;
+esac
+case "$1" in
+notifications)
+    python3 - <<'PY'
+import json, os
+try:
+    d = json.load(open(os.path.expanduser("~/.local/share/macos-theme/notifications.json")))
+    unread = any(n.get("time", 0) > d.get("seen", 0) for n in d.get("items", []))
+except (OSError, ValueError):
+    unread = False
+print("notification-active" if unread else "notifications")
+PY
+    ;;
+esac

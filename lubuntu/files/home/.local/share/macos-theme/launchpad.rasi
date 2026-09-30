@@ -5,7 +5,7 @@ configuration {
     icon-theme: "WhiteSur";
     drun-display-format: "{name}";
     display-drun: "";
-    font: "Inter 11";
+    font: "Inter 12";
     hover-select: true;
     me-select-entry: "";
     me-accept-entry: "MousePrimary";
@@ -31,10 +31,10 @@ mainbox {
 
 inputbar {
     children: [ entry ];
-    margin: 0px 38%;
-    padding: 7px 14px;
+    margin: 0px 15%;
+    padding: 14px 20px;
     border: 1px;
-    border-radius: 9px;
+    border-radius: 12px;
     border-color: rgba(255, 255, 255, 22%);
     background-color: rgba(255, 255, 255, 14%);
 }

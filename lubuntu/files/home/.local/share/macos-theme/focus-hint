@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+# Lets GTK header-bar apps (GNOME Terminal etc.) show macOS-style unfocused
+# windows: lighter title bar, grey traffic lights.
+# GTK only switches to its unfocused ("backdrop") look when the window manager
+# supports _NET_WM_STATE_FOCUSED, which Openbox doesn't. This advertises the
+# hint and keeps it set on the focused window only.
+import ctypes
+
+x11 = ctypes.CDLL("libX11.so.6")
+x11.XOpenDisplay.restype = ctypes.c_void_p
+x11.XInternAtom.restype = ctypes.c_ulong
+x11.XDefaultRootWindow.restype = ctypes.c_ulong
+
+d = ctypes.c_void_p(x11.XOpenDisplay(None))
+root = x11.XDefaultRootWindow(d)
+
+# Ignore X errors (windows can vanish between our requests).
+ERROR_HANDLER = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_void_p)(lambda dpy, ev: 0)
+x11.XSetErrorHandler(ERROR_HANDLER)
+
+
+def atom(name):
+    return x11.XInternAtom(d, name.encode(), 0)
+
+
+A_SUPPORTED = atom("_NET_SUPPORTED")
+A_ACTIVE = atom("_NET_ACTIVE_WINDOW")
+A_STATE = atom("_NET_WM_STATE")
+A_FOCUSED = atom("_NET_WM_STATE_FOCUSED")
+XA_ATOM, XA_WINDOW = 4, 33
+PROP_MODE_REPLACE = 0
+PROPERTY_NOTIFY = 28
+PROPERTY_CHANGE_MASK = 1 << 22
+
+
+class XPropertyEvent(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_int), ("serial", ctypes.c_ulong),
+                ("send_event", ctypes.c_int), ("display", ctypes.c_void_p),
+                ("window", ctypes.c_ulong), ("atom", ctypes.c_ulong),
+                ("time", ctypes.c_ulong), ("state", ctypes.c_int)]
+
+
+class XEvent(ctypes.Union):
+    _fields_ = [("type", ctypes.c_int), ("xproperty", XPropertyEvent), ("pad", ctypes.c_long * 24)]
+
+
+def get_atoms(win, prop, typ=XA_ATOM, n=1024):
+    rtyp, fmt = ctypes.c_ulong(), ctypes.c_int()
+    count, after = ctypes.c_ulong(), ctypes.c_ulong()
+    data = ctypes.POINTER(ctypes.c_ulong)()
+    if x11.XGetWindowProperty(d, ctypes.c_ulong(win), ctypes.c_ulong(prop), 0, n, 0,
+                              ctypes.c_ulong(typ), ctypes.byref(rtyp), ctypes.byref(fmt),
+                              ctypes.byref(count), ctypes.byref(after), ctypes.byref(data)) != 0:
+        return None
+    if not data:
+        return []
+    vals = [data[i] for i in range(count.value)]
+    x11.XFree(data)
+    return vals
+
+
+def set_atoms(win, prop, vals):
+    arr = (ctypes.c_ulong * max(len(vals), 1))(*vals)
+    x11.XChangeProperty(d, ctypes.c_ulong(win), ctypes.c_ulong(prop), ctypes.c_ulong(XA_ATOM), 32,
+                        PROP_MODE_REPLACE, arr, len(vals))
+
+
+def advertise():
+    supported = get_atoms(root, A_SUPPORTED)
+    if supported is not None and A_FOCUSED not in supported:
+        set_atoms(root, A_SUPPORTED, supported + [A_FOCUSED])
+
+
+def mark(win, focused):
+    state = get_atoms(win, A_STATE)
+    if state is None:
+        return
+    if focused and A_FOCUSED not in state:
+        set_atoms(win, A_STATE, state + [A_FOCUSED])
+    elif not focused and A_FOCUSED in state:
+        set_atoms(win, A_STATE, [a for a in state if a != A_FOCUSED])
+
+
+current = [0]
+
+
+def follow_active():
+    active = get_atoms(root, A_ACTIVE, XA_WINDOW, 1) or [0]
+    new = active[0]
+    if new == current[0]:
+        return
+    if current[0]:
+        mark(current[0], False)
+    if new:
+        x11.XSelectInput(d, ctypes.c_ulong(new), PROPERTY_CHANGE_MASK)
+        mark(new, True)
+    current[0] = new
+
+
+x11.XSelectInput(d, ctypes.c_ulong(root), PROPERTY_CHANGE_MASK)
+advertise()
+follow_active()
+x11.XFlush(d)
+
+ev = XEvent()
+while True:
+    x11.XNextEvent(d, ctypes.byref(ev))
+    if ev.type != PROPERTY_NOTIFY:
+        continue
+    w, a = ev.xproperty.window, ev.xproperty.atom
+    if w == root and a == A_SUPPORTED:
+        advertise()                 # Openbox rewrote the list (e.g. after a restart)
+    elif w == root and a == A_ACTIVE:
+        follow_active()
+    elif a == A_STATE:
+        mark(w, w == current[0])    # Openbox rewrote a window's state; put our flag back/remove it
+    x11.XFlush(d)

@@ -1,0 +1,9 @@
+# GitHub Pages: publishes README.md as the home page and docs/CHANGES.md as /docs/CHANGES.html
+title: Lubuntu, dressed as macOS
+description: Make Lubuntu (LXQt) look and feel like macOS. One script, one-command undo.
+theme: jekyll-theme-cayman
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: false
