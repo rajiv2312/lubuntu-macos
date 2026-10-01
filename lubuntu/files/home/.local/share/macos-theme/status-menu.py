@@ -13,6 +13,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -308,9 +309,30 @@ class Menu(Gtk.ApplicationWindow):
         pwd_entry.grab_focus()
 
     def connect_with_password(self, ssid, password):
-        if password:
-            spawn(["nmcli", "device", "wifi", "connect", ssid, "password", password])
-        self.get_application().quit()
+        if not password:
+            self.get_application().quit()
+            return
+
+        # Show "Connecting..." message while connection is attempted
+        self.clear()
+        status = Gtk.Label(label=f'Connecting to "{ssid}"...')
+        status.set_halign(Gtk.Align.CENTER)
+        self.card.pack_start(status, True, True, 0)
+        self.card.show_all()
+
+        # Run connection in background and wait for it
+        def connect_bg():
+            result = subprocess.run(
+                ["nmcli", "device", "wifi", "connect", ssid, "password", password],
+                capture_output=True, timeout=30
+            )
+            # Close menu after connection attempt
+            GLib.idle_add(lambda: self.get_application().quit())
+            return False
+
+        import threading
+        thread = threading.Thread(target=connect_bg, daemon=True)
+        thread.start()
 
     def build_bluetooth(self):
         show = run(["bluetoothctl", "show"])
