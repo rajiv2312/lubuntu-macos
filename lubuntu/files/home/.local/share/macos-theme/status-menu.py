@@ -9,6 +9,7 @@ password through the running password agent (nm-tray), so no password passes
 through this script. Bluetooth uses bluetoothctl. Undo:
 ~/.local/share/macos-theme/undo-status-menus
 """
+import os
 import re
 import subprocess
 import sys
@@ -266,7 +267,9 @@ class Menu(Gtk.ApplicationWindow):
             spawn(["nmcli", "connection", "up", "id", ssid])
         else:
             # Show macOS-style password dialog for new networks
-            spawn(["/home/trishul2/.local/share/macos-theme/macos-wifi-password", ssid])
+            # Pass DISPLAY to ensure kdialog can open
+            display = os.environ.get('DISPLAY', ':0')
+            spawn(["sh", "-c", f"DISPLAY={display} /home/trishul2/.local/share/macos-theme/macos-wifi-password '{ssid}'"])
         self.get_application().quit()
 
     def build_bluetooth(self):
