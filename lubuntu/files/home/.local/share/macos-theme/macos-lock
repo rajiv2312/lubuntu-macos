@@ -13,6 +13,9 @@ can=$(busctl --system get-property org.freedesktop.DisplayManager /org/freedeskt
       org.freedesktop.DisplayManager.Seat CanSwitch 2>/dev/null)
 [ "$can" = "b true" ] || fallback
 
+# Stop xscreensaver before switching to the login screen (prevents double prompts)
+xscreensaver-command -exit >/dev/null 2>&1 || true
+
 before=$(cat /sys/class/tty/tty0/active 2>/dev/null)
 busctl --system call org.freedesktop.DisplayManager /org/freedesktop/DisplayManager/Seat0 \
        org.freedesktop.DisplayManager.Seat SwitchToGreeter >/dev/null 2>&1 || fallback
