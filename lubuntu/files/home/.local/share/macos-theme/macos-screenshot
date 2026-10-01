@@ -30,6 +30,5 @@ if [ -f "$FILEPATH" ]; then
     # Open file manager (Finder) showing the Pictures folder
     pcmanfm-qt "$SCREENSHOT_DIR" &
 
-    # Show notification
-    notify-send -i "screenshot" "Screenshot Saved & Copied" "$FILENAME" 2>/dev/null || true
+    # Notification disabled for minimal notification mode
 fi

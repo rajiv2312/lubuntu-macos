@@ -33,8 +33,22 @@ def save(data):
     os.replace(tmp, STORE)
 
 
+def is_critical(app, summary, body):
+    """Only keep critical/important notifications"""
+    critical_keywords = [
+        "error", "failed", "failure", "warning", "alert", "critical",
+        "authentication", "password", "security", "urgent", "attention",
+        "battery", "low", "power", "crash", "panic", "fatal"
+    ]
+    text = f"{app} {summary} {body}".lower()
+    return any(keyword in text for keyword in critical_keywords)
+
+
 def record(app, icon, summary, body):
     if app in ("notify-send",) and not summary:
+        return
+    # Only record critical notifications
+    if not is_critical(app, summary, body):
         return
     data = load()
     data["items"].insert(0, {"app": app or "Notification", "icon": icon, "summary": summary,
