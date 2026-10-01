@@ -83,6 +83,10 @@ def run(cmd, timeout=6):
 def spawn(cmd):
     subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
 
+def spawn_gui(cmd):
+    # For GUI applications like kdialog that need X11 display
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 
 def split_terse(line):
     # nmcli -t escapes ':' inside values as '\:'
@@ -267,9 +271,8 @@ class Menu(Gtk.ApplicationWindow):
             spawn(["nmcli", "connection", "up", "id", ssid])
         else:
             # Show macOS-style password dialog for new networks
-            # Pass DISPLAY to ensure kdialog can open
-            display = os.environ.get('DISPLAY', ':0')
-            spawn(["sh", "-c", f"DISPLAY={display} /home/trishul2/.local/share/macos-theme/macos-wifi-password '{ssid}'"])
+            # Use spawn_gui to preserve X11 display connection
+            spawn_gui(["/home/trishul2/.local/share/macos-theme/macos-wifi-password", ssid])
         self.get_application().quit()
 
     def build_bluetooth(self):
