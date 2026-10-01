@@ -1,12 +1,9 @@
 #!/bin/bash
-# macOS-style screenshot tool for Linux
-# - Shows crosshair cursor
-# - Select area with mouse
-# - Auto-saves with timestamp
-# - Copies path to clipboard
+# macOS-style screenshot using screengrab
+# - Region selection mode: select area with mouse
+# - Auto-saves to ~/Pictures/
 # - Shows notification
-
-set -e
+# - No extra prompts or windows
 
 SCREENSHOT_DIR="$HOME/Pictures"
 mkdir -p "$SCREENSHOT_DIR"
@@ -15,19 +12,10 @@ TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
 FILENAME="Screenshot_$TIMESTAMP.png"
 FILEPATH="$SCREENSHOT_DIR/$FILENAME"
 
-# Use ImageMagick's import for interactive selection
-# -pause 0 = no delay, crosshair appears immediately
-import -pause 0 "$FILEPATH" 2>/dev/null || {
-    # User cancelled (pressed Escape or Ctrl+C)
-    exit 0
-}
+# Use screengrab in region mode
+# -r = region selection, -n = no window, saves and exits
+screengrab -r
 
-# Copy the file path to clipboard
-echo -n "$FILEPATH" | xclip -selection clipboard 2>/dev/null || \
-echo -n "$FILEPATH" | xsel -b 2>/dev/null || true
-
-# Show notification (using LXQt notification daemon)
-notify-send -i "screenshot" "Screenshot Saved" "$FILENAME" 2>/dev/null || true
-
-# Optional: Show the file manager if desired
-# pcmanfm-qt "$SCREENSHOT_DIR" &
+# The screenshot is saved automatically by screengrab
+# Show notification
+notify-send -i "screenshot" "Screenshot Saved" "Saved to Pictures/" 2>/dev/null || true
