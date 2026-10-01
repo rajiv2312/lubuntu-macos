@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=XScreenSaver
+Comment=Screensaver with Ken Burns and lock screen
+Exec=xscreensaver -no-splash
+StartupNotify=false
+NoDisplay=false
+OnlyShowIn=LXDE;LXQt;
