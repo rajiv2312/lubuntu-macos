@@ -247,7 +247,7 @@
   </keybind>
   <!-- Take a macOS-style screenshot when Alt+Print are pressed -->
   <keybind key="A-Print">
-    <action name="Execute"><command>~/.local/share/macos-theme/macos-screenshot</command></action>
+    <action name="Execute"><command>/home/trishul2/.local/share/macos-theme/macos-screenshot</command></action>
   </keybind>
 
   <!-- Keybindings for window switching -->
@@ -314,7 +314,7 @@
   </keybind>
   <!-- Launch macOS-style screenshot when Print is pressed -->
   <keybind key="Print">
-    <action name="Execute"><command>~/.local/share/macos-theme/macos-screenshot</command></action>
+    <action name="Execute"><command>/home/trishul2/.local/share/macos-theme/macos-screenshot</command></action>
   </keybind>
 </keyboard>
 

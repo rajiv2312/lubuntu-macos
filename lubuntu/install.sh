@@ -97,7 +97,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
   fonts-inter plank rofi picom papirus-icon-theme qt-style-kvantum \
   vala-panel vala-panel-appmenu appmenu-registrar appmenu-gtk3-module \
   gnome-terminal mate-polkit xscreensaver xscreensaver-gl fastfetch \
-  upower bluez wireplumber python3-gi pavucontrol-qt nm-connection-editor
+  upower bluez wireplumber python3-gi pavucontrol-qt nm-connection-editor imagemagick
 
 # ---------------------------------------------------------------- 3. themes (pinned versions)
 fetch(){ # repo sha dir
@@ -181,7 +181,7 @@ tmpl "$FILES/home" "$HOME"
 
 # links that point into this user's home
 ln -sfn "$HOME/.config/vala-panel" "$MT/vala-panel-config/vala-panel"
-mkdir -p "$MT/vala-panel-config/gtk-3.0" "$MT/polkit-agent-config/gtk-3.0"
+mkdir -p "$MT/vala-panel-config/gtk-3.0" "$MT/polkit-agent-config/gtk-3.0" "$MT/polkit-agent-config/gtk-4.0"
 ln -sf "$HOME/.config/gtk-3.0/settings.ini" "$MT/vala-panel-config/gtk-3.0/settings.ini"
 ln -sf "$HOME/.config/gtk-3.0/settings.ini" "$MT/polkit-agent-config/gtk-3.0/settings.ini"
 
