@@ -1,0 +1,78 @@
+/* LXQt Logout Dialog - macOS Light Style */
+
+/* Main dialog window */
+QDialog {
+    color: #1d1d1f;
+    background: #f2f2f7;
+    border: none;
+    border-radius: 12px;
+}
+
+/* Caption colors */
+QLabel {
+    color: #1d1d1f;
+    background: transparent;
+    font: 13px "Inter";
+}
+
+/* Session action buttons */
+QAbstractItemView {
+    color: #1d1d1f;
+    background: #ffffff;
+    border: none;
+    border-radius: 6px;
+}
+
+/* Confirmation dialog buttons */
+QPushButton {
+    color: #1d1d1f;
+    background: #e5e5ea;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    margin: 0px 6px;
+    font: 13px "Inter";
+    min-width: 70px;
+    min-height: 24px;
+}
+
+QToolButton {
+    color: #1d1d1f;
+    background: #e5e5ea;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin: 0px 6px;
+    font: 13px "Inter";
+}
+
+/* Button hover state */
+QPushButton:hover,
+QToolButton:hover {
+    background: #d5d5dc;
+}
+
+/* Button pressed state */
+QPushButton:pressed,
+QToolButton:pressed {
+    background: #c5c5cc;
+}
+
+/* Default button (typically logout/confirm) */
+QPushButton:default {
+    color: #ffffff;
+    background: #007aff;
+}
+
+QPushButton:default:hover {
+    background: #0052cc;
+}
+
+QPushButton:default:pressed {
+    background: #0040a0;
+}
+
+/* Focus indicator */
+QDialog QAbstractButton:focus {
+    outline: none;
+}
