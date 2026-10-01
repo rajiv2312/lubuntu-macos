@@ -1,5 +1,43 @@
-/* macOS theme: password prompt only - hide the "Details" expander (macOS has none).
-   GTK 3 ignores negative margins, so the dialog's own box spacing (~30px) remains. */
+/* === macOS Authentication Dialog Styling === */
+
+/* Main dialog window - light background with subtle border */
+dialog {
+    background-color: #f2f2f7;
+    color: #1d1d1f;
+}
+
+dialog box {
+    background-color: transparent;
+}
+
+/* Dialog title/labels - clean macOS style */
+dialog label {
+    color: #1d1d1f;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+}
+
+/* Password entry field - light grey with rounded corners */
+entry {
+    background-color: #ffffff;
+    color: #1d1d1f;
+    border: 1px solid #d5d5d0;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+}
+
+entry:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+entry placeholder {
+    color: #a0a0a0;
+}
+
+/* Hide the "Details" expander (macOS has none) */
 expander, expander title, expander title label, expander title arrow {
     opacity: 0;
     min-height: 0; min-width: 0;
@@ -8,15 +46,81 @@ expander, expander title, expander title label, expander title arrow {
     -gtk-icon-source: none;
 }
 
-/* macOS theme: default dialog button (Enter) is macOS blue, others stay grey */
-button.default, button.suggested-action, .dialog-action-area button.default {
+/* Dialog buttons - macOS style */
+dialog button {
+    background-image: none;
+    background-color: #e5e5ea;
+    border: none;
+    border-radius: 6px;
+    color: #1d1d1f;
+    padding: 6px 16px;
+    margin: 0px 6px;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+    min-width: 70px;
+    min-height: 24px;
+}
+
+dialog button:hover {
+    background-color: #d5d5dc;
+}
+
+dialog button:active {
+    background-color: #c5c5cc;
+}
+
+/* Default button (Cancel) - light gray */
+dialog button:first-child {
+    background-color: #e5e5ea;
+}
+
+/* Primary button (Authenticate/OK) - macOS blue */
+button.default,
+button.suggested-action,
+.dialog-action-area button.default {
     background-image: none;
     background-color: #007aff;
-    border-color: #0068d9;
+    border: none;
+    border-radius: 6px;
     color: #ffffff;
     box-shadow: none;
+    padding: 6px 16px;
+    margin: 0px 6px;
 }
-button.default:hover, button.suggested-action:hover { background-color: #1a87ff; }
-button.default:active, button.suggested-action:active { background-color: #0062cc; }
-button.default label, button.suggested-action label { color: #ffffff; }
-button.default:backdrop, button.suggested-action:backdrop { background-color: #7fb8f7; border-color: #7fb8f7; }
+
+button.default:hover,
+button.suggested-action:hover {
+    background-color: #0052cc;
+}
+
+button.default:active,
+button.suggested-action:active {
+    background-color: #0040a0;
+}
+
+button.default label,
+button.suggested-action label {
+    color: #ffffff;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 13px;
+}
+
+button.default:backdrop,
+button.suggested-action:backdrop {
+    background-color: #7fb8f7;
+    border-color: #7fb8f7;
+}
+
+/* Dialog action area styling */
+.dialog-action-area {
+    background-color: transparent;
+    border-top: none;
+    padding: 16px 0 0 0;
+    margin-top: 20px;
+}
+
+/* Separator between dialog content and buttons */
+dialog > box > separator {
+    background-color: transparent;
+    margin: 0;
+}

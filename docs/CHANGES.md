@@ -188,11 +188,18 @@ User copies in `~/.local/share/applications/` (the system files are untouched), 
 
 - **Notification pop-ups**: light rounded cards at the top right
   (`~/.local/share/lxqt/themes/kvantum-macos/lxqt-notificationd.qss`, `~/.config/lxqt/notifications.conf` `placement=top-right`).
+- **Logout dialog** (when clicking "Log Out" in the Apple menu): light background (#f2f2f7), rounded corners,
+  blue "Log Out" button, grey "Cancel" button, macOS-style spacing. Light and dark theme versions.
+  (`~/.local/share/lxqt/themes/kvantum-macos/lxqt-leave.qss`, `lxqt-leave.qss.dark`).
+- **All system dialogs** (authentication, file chooser, confirmations, etc.): consistent macOS styling
+  with light background, rounded entry fields with blue focus rings, blue primary buttons, grey secondary buttons.
+  Applied to both GTK 3 and GTK 4.
+  (`~/.config/gtk-3.0/gtk.css`, `~/.config/gtk-4.0/gtk.css`).
 - **Password prompt** (when an app needs admin rights): the MATE polkit agent instead of LXQt's,
-  centred, no title bar, rounded, "Details" hidden, blue default button
+  centred, no title bar, rounded, "Details" hidden, light background, blue "Authenticate" button.
   (`~/.config/autostart/polkit-mate-authentication-agent-1.desktop`,
-  `~/.local/share/macos-theme/polkit-agent-config/gtk-3.0/gtk.css`, Openbox and picom rules; LXQt's agent disabled with `Hidden=true`).
-- **Default buttons are blue** in GTK dialogs (`~/.config/gtk-3.0/gtk.css`) and Qt dialogs (Kvantum).
+  `~/.local/share/macos-theme/polkit-agent-config/gtk-3.0/gtk.css`, `gtk-4.0/gtk.css`, Openbox and picom rules; LXQt's agent disabled with `Hidden=true`).
+- **Default buttons are blue** in all dialogs (GTK and Qt/Kvantum).
 
 ## 12. Wallpapers and screensaver
 

@@ -39,3 +39,63 @@ decoration:backdrop { margin: 0; box-shadow: 0 0 0 1px rgba(0,0,0,0.20); }
 /* macOS theme: slimmer header bars (macOS title bar is 28pt, about 34px here) */
 headerbar { min-height: 34px; padding-top: 0; padding-bottom: 0; }
 headerbar button:not(.titlebutton) { min-height: 24px; min-width: 24px; padding: 0 4px; margin-top: 0; margin-bottom: 0; }
+
+/* === macOS System Dialogs Styling (GTK 4) === */
+
+/* Dialog windows - light background */
+dialog, messagedialog {
+    background-color: #f2f2f7;
+    color: #1d1d1f;
+}
+
+/* Dialog text and labels */
+dialog label, messagedialog label {
+    color: #1d1d1f;
+    font: 13px "Inter";
+}
+
+/* Text entry fields (password, username, etc.) */
+dialog entry, messagedialog entry {
+    background-color: #ffffff;
+    color: #1d1d1f;
+    border: 1px solid #d5d5d0;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+dialog entry:focus, messagedialog entry:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+/* Generic dialog buttons */
+dialog button, messagedialog button {
+    background-color: #e5e5ea;
+    color: #1d1d1f;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font: 13px "Inter";
+}
+
+dialog button:hover, messagedialog button:hover {
+    background-color: #d5d5dc;
+}
+
+dialog button:active, messagedialog button:active {
+    background-color: #c5c5cc;
+}
+
+/* Dialog action area */
+.dialog-action-area, messagedialog .action-area {
+    background-color: transparent;
+    border-top: 1px solid #e5e5e5;
+    padding: 16px 0 0 0;
+}
+
+/* Hide expanders in dialogs */
+dialog expander, messagedialog expander {
+    color: #1d1d1f;
+}
+
+dialog expander > title { padding: 4px 0; }

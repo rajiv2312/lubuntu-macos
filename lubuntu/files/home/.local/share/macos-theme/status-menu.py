@@ -265,10 +265,8 @@ class Menu(Gtk.ApplicationWindow):
         if known:
             spawn(["nmcli", "connection", "up", "id", ssid])
         else:
-            # NetworkManager asks the running password agent (nm-tray) for the key;
-            # if that is not possible, open the network settings instead
-            cmd = ("nmcli --wait 90 device wifi connect \"$1\" || nm-connection-editor")
-            spawn(["sh", "-c", cmd, "sh", ssid])
+            # Show macOS-style password dialog for new networks
+            spawn(["/home/trishul2/.local/share/macos-theme/macos-wifi-password", ssid])
         self.get_application().quit()
 
     def build_bluetooth(self):
