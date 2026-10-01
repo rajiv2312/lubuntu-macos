@@ -16,6 +16,9 @@ can=$(busctl --system get-property org.freedesktop.DisplayManager /org/freedeskt
 # Stop xscreensaver before switching to the login screen (prevents double prompts)
 xscreensaver-command -exit >/dev/null 2>&1 || true
 
+# Show black overlay to prevent desktop flash during SDDM switch
+(sleep 0.2; xset dpms force off) >/dev/null 2>&1 &
+
 before=$(cat /sys/class/tty/tty0/active 2>/dev/null)
 busctl --system call org.freedesktop.DisplayManager /org/freedesktop/DisplayManager/Seat0 \
        org.freedesktop.DisplayManager.Seat SwitchToGreeter >/dev/null 2>&1 || fallback
@@ -25,7 +28,11 @@ busctl --system call org.freedesktop.DisplayManager /org/freedesktop/DisplayMana
 i=0
 while [ $i -lt 50 ]; do
     now=$(cat /sys/class/tty/tty0/active 2>/dev/null)
-    [ -n "$now" ] && [ "$now" != "$before" ] && exit 0
+    [ -n "$now" ] && [ "$now" != "$before" ] && {
+        # Turn display back on now that SDDM is active
+        sleep 0.5; xset dpms force on
+        exit 0
+    }
     sleep 0.1; i=$((i + 1))
 done
 fallback   # the switch did not happen within 5 s: lock this session the classic way
