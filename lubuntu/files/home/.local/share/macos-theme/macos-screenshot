@@ -22,8 +22,14 @@ else
     fi
 fi
 
-# Copy to clipboard
+# If screenshot was created, open it in Finder and copy to clipboard
 if [ -f "$FILEPATH" ]; then
+    # Copy to clipboard
     xclip -selection clipboard -t image/png < "$FILEPATH" 2>/dev/null || true
-    notify-send -i "screenshot" "Screenshot Saved" "$FILENAME" 2>/dev/null || true
+
+    # Open file manager (Finder) showing the Pictures folder
+    pcmanfm-qt "$SCREENSHOT_DIR" &
+
+    # Show notification
+    notify-send -i "screenshot" "Screenshot Saved & Copied" "$FILENAME" 2>/dev/null || true
 fi
