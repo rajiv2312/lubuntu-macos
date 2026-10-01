@@ -268,12 +268,48 @@ class Menu(Gtk.ApplicationWindow):
 
     def join(self, ssid, known):
         if known:
-            # For known networks, use the saved connection profile
             spawn(["nmcli", "connection", "up", "id", ssid])
+            self.get_application().quit()
         else:
-            # For new networks, show password dialog without auto-saving
-            # Use --save no to prevent connection from being saved to known list
-            spawn_gui(["/home/trishul2/.local/share/macos-theme/macos-wifi-connect", ssid])
+            self.show_password_input(ssid)
+
+    def show_password_input(self, ssid):
+        # Show password input inline in the menu
+        self.clear()
+
+        # Back button
+        back_btn = Gtk.Button(label="← Back")
+        back_btn.connect("clicked", lambda *_: (self.build_wifi(), self.card.show_all()))
+        self.card.pack_start(back_btn, False, False, 0)
+
+        # Network name label
+        title = Gtk.Label(label=f'"{ssid}"')
+        title.set_halign(Gtk.Align.START)
+        title.get_style_context().add_class("section")
+        self.card.pack_start(title, False, False, 0)
+
+        # Password field label
+        pwd_label = Gtk.Label(label="Password:")
+        pwd_label.set_halign(Gtk.Align.START)
+        self.card.pack_start(pwd_label, False, False, 0)
+
+        pwd_entry = Gtk.Entry()
+        pwd_entry.set_visibility(False)
+        pwd_entry.set_placeholder_text("Enter password")
+        pwd_entry.connect('activate', lambda *_: self.connect_with_password(ssid, pwd_entry.get_text()))
+        self.card.pack_start(pwd_entry, False, False, 0)
+
+        # Connect button
+        connect_btn = Gtk.Button(label="Connect")
+        connect_btn.connect("clicked", lambda *_: self.connect_with_password(ssid, pwd_entry.get_text()))
+        self.card.pack_start(connect_btn, False, False, 0)
+
+        self.card.show_all()
+        pwd_entry.grab_focus()
+
+    def connect_with_password(self, ssid, password):
+        if password:
+            spawn(["nmcli", "device", "wifi", "connect", ssid, "password", password])
         self.get_application().quit()
 
     def build_bluetooth(self):
