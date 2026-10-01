@@ -253,9 +253,14 @@ class Menu(Gtk.ApplicationWindow):
                 for s in kn:
                     self.row(signal_icon(nets[s]["sig"]), s, lock=nets[s]["sec"], on_click=lambda s=s: self.join(s, True))
             other = sorted((s for s in nets if s not in known and s not in current), key=lambda s: -nets[s]["sig"])[:8]
+            with open("/tmp/status-menu-join.log", "a") as log:
+                log.write(f"[build_wifi] known={len(known)}, current={len(current)}, other={len(other)}\n")
+                log.write(f"[build_wifi] other networks: {other}\n")
             if other:
                 self.section("Other Networks")
                 for s in other:
+                    with open("/tmp/status-menu-join.log", "a") as log:
+                        log.write(f"[build_wifi] Adding row for: {s}\n")
                     self.row(signal_icon(nets[s]["sig"]), s, lock=nets[s]["sec"], on_click=lambda s=s: self.join(s, False))
             if not nets:
                 self.note("No networks found")
@@ -267,11 +272,16 @@ class Menu(Gtk.ApplicationWindow):
         self.refresh_later(2500 if state else 1000)
 
     def join(self, ssid, known):
+        # Log all join attempts
+        with open("/tmp/status-menu-join.log", "a") as log:
+            log.write(f"[join] ssid={ssid}, known={known}\n")
+
         if known:
             spawn(["nmcli", "connection", "up", "id", ssid])
         else:
             # Show macOS-style password dialog for new networks
-            # Use spawn_gui to preserve X11 display connection
+            with open("/tmp/status-menu-join.log", "a") as log:
+                log.write(f"[join] Calling spawn_gui with ssid={ssid}\n")
             spawn_gui(["/home/trishul2/.local/share/macos-theme/macos-wifi-password", ssid])
         self.get_application().quit()
 
