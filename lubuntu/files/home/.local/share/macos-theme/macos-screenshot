@@ -1,15 +1,7 @@
 #!/bin/bash
 # macOS-style screenshot using screengrab
-# - Single instance (no duplicate windows)
-# - No help text (minimized mode)
-# - Clean region selection only
+# - Clean region selection (no help window)
 # - Auto-saves to ~/Pictures/
-
-# Check if screengrab is already running
-if pgrep -x "screengrab" > /dev/null; then
-    # Already running - just exit to avoid duplicate windows
-    exit 0
-fi
 
 # Launch screengrab in region selection + minimized mode
 # -r = region selection (interactive)
