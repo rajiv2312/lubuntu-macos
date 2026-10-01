@@ -1,0 +1,22 @@
+#!/bin/bash
+# macOS-style Wi-Fi password prompt with --save no to prevent auto-saving
+# Usage: macos-wifi-connect <SSID>
+
+SSID="$1"
+
+if [ -z "$SSID" ]; then
+    exit 1
+fi
+
+# Show password prompt using kdialog
+PASSWORD=$(kdialog --password "Enter password for \"$SSID\":" 2>/dev/null)
+
+if [ -z "$PASSWORD" ]; then
+    exit 1
+fi
+
+# Try to connect with --save no to prevent auto-saving to known networks
+# Only save to known if connection is successful (user can do this manually)
+nmcli device wifi connect "$SSID" password "$PASSWORD" --save no
+
+exit $?
