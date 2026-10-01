@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""macOS-style Wi-Fi password dialog - clean, centered sheet"""
+"""macOS-style Wi-Fi password dialog"""
 import sys
 import subprocess
 import os
@@ -7,126 +7,98 @@ import os
 try:
     import gi
     gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk, Gdk, GLib
+    from gi.repository import Gtk, Gdk
 except ImportError:
-    print("GTK not available, using fallback", file=sys.stderr)
     sys.exit(1)
-
-# macOS-style CSS
-CSS = b"""
-window { background-color: #f5f5f5; }
-
-* { font-family: 'Inter', 'SF Pro Display', sans-serif; font-size: 13px; }
-
-box { background-color: #f5f5f5; }
-
-label { color: #1d1d1f; }
-
-entry {
-    background-color: #ffffff;
-    color: #1d1d1f;
-    border: 1px solid #d5d5d0;
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 13px;
-}
-
-entry:focus {
-    border-color: #007aff;
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
-}
-
-button {
-    background-color: #e5e5ea;
-    color: #1d1d1f;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 16px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-button:hover { background-color: #d5d5dc; }
-
-button.suggested-action {
-    background-color: #007aff;
-    color: #ffffff;
-}
-
-button.suggested-action:hover { background-color: #1a87ff; }
-"""
 
 class WiFiPasswordDialog(Gtk.Dialog):
     def __init__(self, ssid):
-        super().__init__(modal=True, destroy_with_parent=True)
+        super().__init__(title="", modal=True, destroy_with_parent=True)
         self.ssid = ssid
 
-        # Style the window
-        self.set_decorated(False)  # Remove window decorations
-        self.set_default_size(380, 200)
-        self.set_position(Gtk.WindowPosition.CENTER)
+        # Window setup - clean macOS style
+        self.set_decorated(False)
+        self.set_default_size(400, 220)
+        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.set_keep_above(True)
 
-        # Apply CSS
-        provider = Gtk.CssProvider()
-        provider.load_from_data(CSS)
-        context = self.get_style_context()
-        context.add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        # Apply CSS styling
+        css_provider = Gtk.CssProvider()
+        css_data = b"""
+        window { background-color: #f5f5f7; }
+        * { font-family: 'Inter', sans-serif; font-size: 13px; color: #1d1d1f; }
+        entry {
+            background-color: #ffffff;
+            border: 1px solid #d5d5d0;
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        entry:focus { border-color: #0a84ff; box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.2); }
+        button {
+            background-color: #e5e5ea;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 16px;
+        }
+        button:hover { background-color: #d5d5dc; }
+        button.suggested-action {
+            background-color: #0a84ff;
+            color: white;
+        }
+        button.suggested-action:hover { background-color: #147EFB; }
+        """
+        css_provider.load_from_data(css_data)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            css_provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
-        # Add border frame for macOS-like appearance
-        frame = Gtk.Frame()
-        frame.set_shadow_type(Gtk.ShadowType.OUT)
-        self.add(frame)
+        # Get content area
+        content = self.get_content_area()
+        content.set_margin_top(24)
+        content.set_margin_start(24)
+        content.set_margin_end(24)
+        content.set_margin_bottom(20)
+        content.set_spacing(16)
 
-        # Main content box
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
-        vbox.set_margin_top(24)
-        vbox.set_margin_start(24)
-        vbox.set_margin_end(24)
-        vbox.set_margin_bottom(24)
-        frame.add(vbox)
+        # Network name section
+        title_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        title_label = Gtk.Label()
+        title_label.set_markup("<b>Enter password</b>")
+        title_label.set_halign(Gtk.Align.START)
+        title_box.pack_start(title_label, False, False, 0)
 
-        # Title/Network name
-        title = Gtk.Label()
-        title.set_markup(f'<b>Enter password for:</b>')
-        title.set_halign(Gtk.Align.START)
-        vbox.pack_start(title, False, False, 0)
-
-        # Network SSID (highlighted)
-        ssid_label = Gtk.Label(label=f'"{ssid}"')
+        ssid_label = Gtk.Label(label=f'Network: "{ssid}"')
         ssid_label.set_halign(Gtk.Align.START)
-        ssid_label.get_style_context().add_class('emphasized')
-        vbox.pack_start(ssid_label, False, False, 0)
+        ssid_label.get_style_context().add_class("dim-label")
+        title_box.pack_start(ssid_label, False, False, 0)
+        content.pack_start(title_box, False, False, 0)
 
-        # Password field
-        pwd_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        pwd_label = Gtk.Label(label='Password:')
+        # Password input
+        pwd_label = Gtk.Label(label="Password:")
         pwd_label.set_halign(Gtk.Align.START)
-        pwd_box.pack_start(pwd_label, False, False, 0)
+        content.pack_start(pwd_label, False, False, 0)
 
         self.pwd_entry = Gtk.Entry()
-        self.pwd_entry.set_input_purpose(Gtk.InputPurpose.PASSWORD)
         self.pwd_entry.set_visibility(False)
-        self.pwd_entry.set_placeholder_text('Enter network password')
+        self.pwd_entry.set_placeholder_text("Enter network password")
         self.pwd_entry.connect('activate', lambda *_: self.response(Gtk.ResponseType.OK))
-        pwd_box.pack_start(self.pwd_entry, False, False, 0)
-        vbox.pack_start(pwd_box, False, False, 0)
+        content.pack_start(self.pwd_entry, False, False, 0)
 
-        # Button box
-        bbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        bbox.set_homogeneous(True)
+        content.show_all()
 
-        cancel_btn = Gtk.Button(label='Cancel')
-        cancel_btn.connect('clicked', lambda *_: self.response(Gtk.ResponseType.CANCEL))
-        bbox.pack_start(cancel_btn, True, True, 0)
+        # Buttons - use dialog's built-in button area
+        self.add_buttons(
+            "Cancel", Gtk.ResponseType.CANCEL,
+            "Connect", Gtk.ResponseType.OK
+        )
 
-        connect_btn = Gtk.Button(label='Connect')
-        connect_btn.get_style_context().add_class('suggested-action')
-        connect_btn.connect('clicked', lambda *_: self.response(Gtk.ResponseType.OK))
-        bbox.pack_start(connect_btn, True, True, 0)
+        # Style the Connect button
+        ok_btn = self.get_widget_for_response(Gtk.ResponseType.OK)
+        if ok_btn:
+            ok_btn.get_style_context().add_class("suggested-action")
 
-        vbox.pack_end(bbox, False, False, 0)
-
-        self.show_all()
         self.pwd_entry.grab_focus()
 
 def main():
@@ -136,21 +108,24 @@ def main():
     ssid = sys.argv[1]
     os.environ['DISPLAY'] = os.environ.get('DISPLAY', ':0')
 
-    dialog = WiFiPasswordDialog(ssid)
-    response = dialog.run()
-    password = dialog.pwd_entry.get_text() if response == Gtk.ResponseType.OK else None
-    dialog.destroy()
+    try:
+        dialog = WiFiPasswordDialog(ssid)
+        response = dialog.run()
+        password = dialog.pwd_entry.get_text() if response == Gtk.ResponseType.OK else None
+        dialog.destroy()
 
-    if not password:
+        if not password:
+            sys.exit(1)
+
+        # Connect to network
+        result = subprocess.run(
+            ['nmcli', 'device', 'wifi', 'connect', ssid, 'password', password],
+            capture_output=True, text=True, timeout=30
+        )
+        sys.exit(result.returncode)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
-
-    # Connect to the network
-    result = subprocess.run(
-        ['nmcli', 'device', 'wifi', 'connect', ssid, 'password', password],
-        capture_output=True, text=True
-    )
-
-    sys.exit(result.returncode)
 
 if __name__ == '__main__':
     main()
