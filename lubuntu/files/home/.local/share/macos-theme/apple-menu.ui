@@ -25,14 +25,14 @@
       <item>
         <attribute name="label">Force Quit…</attribute>
         <attribute name="action">app.launch-id</attribute>
-        <attribute name="target">qps.desktop</attribute>
+        <attribute name="target">force-quit.desktop</attribute>
       </item>
     </section>
     <section>
       <item>
         <attribute name="label">Sleep</attribute>
         <attribute name="action">app.launch-command</attribute>
-        <attribute name="target">lxqt-leave --suspend</attribute>
+        <attribute name="target">systemctl suspend</attribute>
       </item>
       <item>
         <attribute name="label">Restart…</attribute>
@@ -49,10 +49,10 @@
       <item>
         <attribute name="label">Lock Screen</attribute>
         <attribute name="action">app.launch-command</attribute>
-        <attribute name="target">@HOME@/.local/share/macos-theme/macos-lock</attribute>
+        <attribute name="target">/home/trishul2/.local/share/macos-theme/macos-lock</attribute>
       </item>
       <item>
-        <attribute name="label">Log Out @REALNAME@…</attribute>
+        <attribute name="label">Log Out Trishul…</attribute>
         <attribute name="action">app.launch-command</attribute>
         <attribute name="target">lxqt-leave --logout</attribute>
       </item>
