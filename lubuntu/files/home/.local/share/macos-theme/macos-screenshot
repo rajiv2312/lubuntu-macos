@@ -1,12 +1,29 @@
 #!/bin/bash
-# macOS-style screenshot using screengrab
-# - Clean region selection (no help window)
-# - Auto-saves to ~/Pictures/
+# Screenshot tool - works with import or screengrab
 
-# Launch screengrab in region selection + minimized mode
-# -r = region selection (interactive)
-# -m = minimized (hides main window, no help text)
-screengrab -r -m
+SCREENSHOT_DIR="$HOME/Pictures"
+mkdir -p "$SCREENSHOT_DIR"
 
-# Show notification when done
-notify-send -i "screenshot" "Screenshot Saved" "Saved to Pictures/" 2>/dev/null || true
+TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
+FILENAME="Screenshot_$TIMESTAMP.png"
+FILEPATH="$SCREENSHOT_DIR/$FILENAME"
+
+# Try import (ImageMagick) first - most reliable
+if command -v import &> /dev/null; then
+    import -pause 0 "$FILEPATH" 2>/dev/null
+else
+    # Fallback to screengrab
+    screengrab -r
+    # screengrab saves to its configured location - find and copy it
+    # Look for most recent PNG in common locations
+    FOUND=$(find ~/ -name "*.png" -type f -mmin -1 2>/dev/null | sort -rt '_' -k1 | head -1)
+    if [ -n "$FOUND" ]; then
+        cp "$FOUND" "$FILEPATH"
+    fi
+fi
+
+# Copy to clipboard
+if [ -f "$FILEPATH" ]; then
+    xclip -selection clipboard -t image/png < "$FILEPATH" 2>/dev/null || true
+    notify-send -i "screenshot" "Screenshot Saved" "$FILENAME" 2>/dev/null || true
+fi
