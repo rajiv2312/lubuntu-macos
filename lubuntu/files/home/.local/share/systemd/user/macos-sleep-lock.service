@@ -1,0 +1,11 @@
+[Unit]
+Description=macOS-style lock screen on sleep resume
+After=sleep.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/trishul2/.local/share/macos-theme/macos-lock
+Environment="DISPLAY=:0"
+
+[Install]
+WantedBy=sleep.target
