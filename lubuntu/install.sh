@@ -307,6 +307,14 @@ if [ -f /etc/systemd/logind.conf ]; then
   sudo grep -q "^IdleActionOnBattery=" /etc/systemd/logind.conf || sudo sed -i '/^\[Login\]/a\IdleActionOnBattery=suspend' /etc/systemd/logind.conf
 fi
 
+# Monitor hotplug: auto-mirror external displays when connected
+say "Setting up monitor hotplug handler"
+if [ -f "$FILES/system/99-monitor-hotplug.rules" ]; then
+  sudo install -m 644 "$FILES/system/99-monitor-hotplug.rules" /etc/udev/rules.d/99-monitor-hotplug.rules
+  sudo udevadm control --reload-rules
+  sudo udevadm trigger
+fi
+
 # ---------------------------------------------------------------- done
 say "All done"
 cat <<EOF

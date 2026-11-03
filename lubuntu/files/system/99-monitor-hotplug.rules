@@ -1,0 +1,2 @@
+# Auto-mirror external monitors on plug/unplug
+SUBSYSTEM=="drm", ACTION=="change", RUN+="/home/trishul2/.local/share/macos-theme/mirror-monitor"
