@@ -1,0 +1,18 @@
+#!/bin/sh
+# Undo monitor mirroring: revert to extend mode (external monitor to the right)
+
+# Get displays
+internal=$(xrandr --query | grep ' connected' | grep -E 'eDP|LVDS|LCD' | awk '{print $1}')
+external=$(xrandr --query | grep ' connected' | grep -v "$internal" | awk '{print $1}' | head -1)
+
+if [ -n "$external" ]; then
+    # Extend: place external to the right of internal
+    res=$(xrandr --query | grep "^$external" -A 1 | grep -oE '[0-9]+x[0-9]+' | head -1)
+    internal_res=$(xrandr --query | grep "^$internal" -A 1 | grep -oE '[0-9]+x[0-9]+' | head -1)
+    internal_width=$(echo "$internal_res" | cut -dx -f1)
+    xrandr --output "$internal" --mode "$internal_res" --pos 0x0 --primary
+    xrandr --output "$external" --mode "$res" --pos "${internal_width}x0"
+    echo "✓ Reverted to extend mode (external monitor to the right)"
+else
+    echo "No external monitor detected"
+fi

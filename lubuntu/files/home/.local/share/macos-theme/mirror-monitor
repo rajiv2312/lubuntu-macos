@@ -1,0 +1,22 @@
+#!/bin/sh
+# Auto-mirror external monitors to laptop display when detected
+# Runs on login and on monitor connection events
+
+# Get the internal display (usually eDP-1 on laptops)
+internal=$(xrandr --query | grep ' connected' | grep -E 'eDP|LVDS|LCD' | awk '{print $1}')
+[ -z "$internal" ] && exit 0
+
+# Find any connected external display (DP, HDMI, etc.)
+external=$(xrandr --query | grep ' connected' | grep -v "$internal" | awk '{print $1}' | head -1)
+
+# If external monitor found, mirror it; otherwise, revert to single display
+if [ -n "$external" ]; then
+    # Mirror: set external to same-as internal with auto resolution
+    xrandr --output "$external" --auto --same-as "$internal"
+else
+    # No external monitor: disable all outputs except internal, set to primary
+    xrandr --output "$internal" --auto --primary
+    xrandr --query | grep ' connected' | grep -v "$internal" | awk '{print $1}' | while read output; do
+        xrandr --output "$output" --off
+    done
+fi

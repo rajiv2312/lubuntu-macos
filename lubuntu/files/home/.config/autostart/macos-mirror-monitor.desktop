@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=macOS Mirror Monitor
+Exec=/home/trishul2/.local/share/macos-theme/mirror-monitor
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
