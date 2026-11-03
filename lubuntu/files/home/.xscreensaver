@@ -2,7 +2,7 @@
 mode:		one
 selected:	0
 timeout:	0:10:00
-lock:		False
+lock:		True
 dialogTheme:	Dark Gray
 imageDirectory:	@HOME@/.local/share/macos-theme/screensaver
 chooseRandomImages:	True

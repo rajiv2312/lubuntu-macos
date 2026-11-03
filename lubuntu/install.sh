@@ -96,7 +96,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
   git sassc libgio-2.0-dev-bin libxml2-utils python3-pil \
   fonts-inter plank rofi picom papirus-icon-theme qt-style-kvantum \
   vala-panel vala-panel-appmenu appmenu-registrar appmenu-gtk3-module \
-  gnome-terminal mate-polkit xscreensaver xscreensaver-gl fastfetch \
+  gnome-terminal mate-polkit xscreensaver xscreensaver-gl xscreensaver-gl-extra fastfetch \
   upower bluez wireplumber python3-gi pavucontrol-qt nm-connection-editor imagemagick
 
 # ---------------------------------------------------------------- 3. themes (pinned versions)
