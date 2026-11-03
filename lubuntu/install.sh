@@ -291,6 +291,22 @@ if [ -f "$FILES/system/libfm-qt_en_US.qm" ] && [ -d /usr/share/libfm-qt6/transla
   sudo install -m 644 "$FILES/system/libfm-qt_en_US.qm" /usr/share/libfm-qt6/translations/libfm-qt_en_US.qm   # Finder-style dialog wording
 fi
 
+# Power management: suspend on idle (10 min on battery, 20 min on AC)
+say "Configuring power management"
+if [ -f /etc/systemd/logind.conf ]; then
+  sudo sed -i '/^\[Login\]/,/^$/{
+    /^IdleTimeout=/c\IdleTimeout=1200
+    /^IdleTimeoutOnBattery=/c\IdleTimeoutOnBattery=600
+    /^IdleAction=/c\IdleAction=suspend
+    /^IdleActionOnBattery=/c\IdleActionOnBattery=suspend
+  }' /etc/systemd/logind.conf
+  # Ensure these settings exist if not already
+  sudo grep -q "^IdleTimeout=" /etc/systemd/logind.conf || sudo sed -i '/^\[Login\]/a\IdleTimeout=1200' /etc/systemd/logind.conf
+  sudo grep -q "^IdleTimeoutOnBattery=" /etc/systemd/logind.conf || sudo sed -i '/^\[Login\]/a\IdleTimeoutOnBattery=600' /etc/systemd/logind.conf
+  sudo grep -q "^IdleAction=" /etc/systemd/logind.conf || sudo sed -i '/^\[Login\]/a\IdleAction=suspend' /etc/systemd/logind.conf
+  sudo grep -q "^IdleActionOnBattery=" /etc/systemd/logind.conf || sudo sed -i '/^\[Login\]/a\IdleActionOnBattery=suspend' /etc/systemd/logind.conf
+fi
+
 # ---------------------------------------------------------------- done
 say "All done"
 cat <<EOF
